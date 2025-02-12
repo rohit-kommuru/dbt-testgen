@@ -7,7 +7,7 @@
         column_config = {},
         exclude_types = [],
         exclude_cols = [],
-        tests = ["uniqueness", "accepted_values", "range", "string_length", "recency"],
+        tests = ["uniqueness", "accepted_values", "range", "string_length"],
         uniqueness_composite_key_length = 1,
         accepted_values_max_cardinality = 5,
         range_stddevs = 0,
