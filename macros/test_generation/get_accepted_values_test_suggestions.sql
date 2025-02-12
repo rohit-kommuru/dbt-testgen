@@ -85,6 +85,7 @@
             from (
                 select " ~ adapter.quote(column.column) ~ "
                 from base
+                where " ~ adapter.quote(column.column) ~ " IS NOT NULL 
                 group by " ~ adapter.quote(column.column) ~ "
             ) t1
             "
