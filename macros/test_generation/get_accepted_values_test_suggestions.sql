@@ -25,7 +25,7 @@
         limit = None,
         resource_type = "models",
         column_config = {},
-        exclude_types = ["float"],
+        exclude_types = ["FLOAT64", "TIMESTAMP"],
         exclude_cols = [],
         max_cardinality = 5,
         dbt_config = None
@@ -56,7 +56,7 @@
         limit = None,
         resource_type = "models",
         column_config = {},
-        exclude_types = ["float"],
+        exclude_types = ["float", "TIMESTAMP"],
         exclude_cols = [],
         max_cardinality = 5,
         dbt_config = None
@@ -80,12 +80,16 @@
             "
             select " ~ loop.index ~ " AS ORDERING, 
                 '" ~ column.column ~ "' AS COLNAME, 
-                count(1) as CARDINALITY, " ~ 
-                testgen.sql_agg_array(column.column) ~ " AS UNIQUE_VALUES
+                count(1) as CARDINALITY, 
+                " ~ testgen.sql_agg_array(column.column) ~ " AS UNIQUE_VALUES,
+                CASE
+                    WHEN '" ~ column.is_string() ~ "' = 'True' THEN TRUE
+                    WHEN '" ~ column.is_string() ~ "' = 'False' THEN FALSE
+                END AS IS_STRING
             from (
                 select " ~ adapter.quote(column.column) ~ "
                 from base
-                where " ~ adapter.quote(column.column) ~ " IS NOT NULL 
+                where " ~ adapter.quote(column.column) ~ " IS NOT NULL
                 group by " ~ adapter.quote(column.column) ~ "
             ) t1
             "
@@ -122,16 +126,16 @@
 
     {% set column_tests = [] %}
     {% for cardinality_result in cardinality_results %}
+        
+            
+            {% set col_config = {
+                    "name": cardinality_result[1],
+                    "tests": [
+                        {"accepted_values": {"values": fromjson(cardinality_result[3])|sort, "quote": cardinality_result.IS_STRING}}
+                    ]
+                }
+            %}
 
-        {# {{ print(cardinality_result.COLNAME) }} #}
-
-        {% set col_config = {
-                "name": cardinality_result[1],
-                "tests": [
-                    {"accepted_values": {"values": fromjson(cardinality_result[3])|sort}}
-                ]
-            }
-        %}
 
         {% for k,v in column_config.items() %}
             {% do col_config.update({k: v}) %}

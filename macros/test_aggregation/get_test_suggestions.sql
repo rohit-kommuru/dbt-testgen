@@ -1,13 +1,13 @@
 
 {% macro get_test_suggestions(
         table_relation,
-        sample = false,
+        sample = true,
         limit = 10000,
         resource_type = "models",
         column_config = {},
         exclude_types = [],
         exclude_cols = [],
-        tests = ["uniqueness", "accepted_values", "range", "string_length"],
+        tests = ["uniqueness", "range", "string_length", "accepted_values", recency],
         uniqueness_composite_key_length = 1,
         accepted_values_max_cardinality = 5,
         range_stddevs = 0,
@@ -39,7 +39,7 @@
                 limit=limit,
                 resource_type=resource_type,
                 column_config=column_config,
-                exclude_types=exclude_types,
+                exclude_types=["FLOAT64", "TIMESTAMP"],
                 exclude_cols=exclude_cols,
                 max_cardinality=accepted_values_max_cardinality,
                 dbt_config=dbt_config
