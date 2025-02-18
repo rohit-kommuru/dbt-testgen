@@ -38,7 +38,9 @@
     {% set columns = testgen.exclude_column_names(columns, exclude_cols) %}
 
     {% set column_names = [] %}
+    {% set columns_dict = {} %}
     {% for col in columns %}
+        {% set _ = columns_dict.update({ col.column: col.mode })  %}
         {% do column_names.append(col.column) %}
     {% endfor %}
 
@@ -53,7 +55,7 @@
         {% endfor %}
     {% endfor %}
 
-    {# {{ print(column_combinations) }} #}
+
 
     {% if limit %}
         {% set limit_expr = "LIMIT " ~ limit|string %}
@@ -107,8 +109,7 @@
 
     {% set cardinality_results = zip(column_combinations, testgen.query_as_list(count_distinct_sql)) %}
 
-    {# {{ print(table_count) }}
-    {{ print(cardinality_results|list) }} #}
+
 
     {% set unique_keys = [] %}
     {% for cardinality_result in cardinality_results %}
@@ -159,8 +160,11 @@
             {% if test_config == {} %}
                 
             {% endif %} #}
-
-            {% set tests = ["unique", "not_null"] %}
+            {% if columns_dict.get(unique_key[0]) == 'NULLABLE' %}
+                {% set tests = ["unique"] %}
+            {% else %}
+                 {% set tests = ["unique", "not_null"] %}
+            {% endif %}
 
             {% set col_config = {
                     "name": unique_key[0],
@@ -188,11 +192,11 @@
         {% do model.update({"tests": table_tests}) %} 
     {% endif %}
 
-    {# {{ print(model) }} #}
+   
 
     {% set new_dbt_config = {resource_type: [model]} %}
 
-    {# {{ print(dbt_config) }} #}
+
 
     {% set merged_dbt_config = testgen.merge_dbt_configs(dbt_config, new_dbt_config) %}
 
