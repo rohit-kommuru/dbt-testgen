@@ -32,7 +32,6 @@ elif len(input_parts) == 2:
     )
 
     results = query_job.result()  
-    print(results_schema)
     table_ids = [row['table_id'] for row in results]
 
 else:
@@ -43,15 +42,15 @@ for table_id in table_ids:
     table_name = f"`{project_id}.{dataset_id}.{table_id}`"
     model = " {{ config(materialized='table') }} \n select * from " + table_name
     
-    dir_name = f"model_{table_id}"
+    dir_name = f"{table_id}"
     os.makedirs(os.path.join('./models', dir_name), exist_ok=True)
 
     with open(os.path.join(os.path.join('./models', dir_name), f"model_{table_id}.sql"), "w") as file:
         file.write(model)
 
     print("dbt compile -q --inline \"{{ testgen.get_test_suggestions(ref(" + f"\'model_{table_id}\'" + ")) }}\"")
-    run_command = "dbt run --select " + f"model_{table_id}"
-    generate_command = "dbt compile -q --inline \"{{ testgen.get_test_suggestions(ref(" + f"\'model_{table_id}\'" + ")) }}\""
+    run_command = "dbt run --select " + f"{table_id}"
+    generate_command = "dbt compile -q --inline \"{{ testgen.get_test_suggestions(ref(" + f"\'{table_id}\'" + ")) }}\""
 
     # Run the command and capture the output
     result = subprocess.run(run_command, shell=True, capture_output=True, text=True)
